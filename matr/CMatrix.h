@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 
 template<typename T, size_t rows, size_t cols>
 class CMatrix
@@ -7,18 +9,23 @@ class CMatrix
 public:
     typedef enum Type
     {
-        Normal, 
+        Normal,
         Identity
     };
 
     CMatrix(Type type = Normal)
     {
-        if (type == Identity)
+        switch (type)
         {
-            for (size_t row = 0; row < rows; ++row)
+        case Identity:
+        {
+            size_t ones_count = std::min(rows, cols);
+            for (size_t row = 0; row < ones_count; ++row)
             {
                 _matrix[row][row] = 1;
             }
+        }
+            break;
         }
     }
     CMatrix(const T* array_)
@@ -90,10 +97,6 @@ public:
     {
         for (size_t k = 0; k < rows; ++k)
         {
-            /*for (size_t i = k; i < rows; ++i)
-            {
-                if (_matrix[i][k] != 0) _matrix[i] *= 1.0 / _matrix[i][k];
-            }*/
             if (_matrix[k][k] != 0 && _matrix[k][k] != 1.) _matrix[k] *= 1. / _matrix[k][k];
 
             if (k > 0)
@@ -115,9 +118,6 @@ public:
 
         return *this;
     }
-
-    template<typename T, size_t rows, size_t dim, size_t cols>
-    friend CMatrix<T, rows, cols> operator*(const CMatrix<T, rows, dim>& matrix1_, const CMatrix<T, dim, cols>& matrix2_);
 
 private:
     CVector<T, cols> _matrix[rows];
@@ -179,15 +179,14 @@ CMatrix<T, rows1 + rows2, cols> AppendVert(const CMatrix<T, rows1, cols>& matrix
 {
     CMatrix<T, rows1 + rows2, cols> result;
 
-    for (size_t col = 0; i < cols; ++col)
+    for (size_t row = 0; row < rows1; ++row)
     {
-        for (size_t row = 0; row < rows1; ++row)
-        {
-            result[row][col] = matrix1_[row][col];
-        }
-        for (size_t row = 0; row < rows2; ++row)
-        {
-            result[rows1 + row][col] = matrix2_[row][col];
-        }
+        result[row] = matrix1_[row];
     }
+    for (size_t row = 0; row < rows2; ++row)
+    {
+        result[rows1 + row] = matrix2_[row];
+    }
+
+    return result;
 }
