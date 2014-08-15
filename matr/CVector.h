@@ -9,9 +9,9 @@ class CVector
 {
 public:
     CVector() :
-        _vector{ }
+        _vector()
     {
-        
+
     }
     CVector(const T* array_)
     {
@@ -41,6 +41,15 @@ public:
 
         return *this;
     }
+    CVector& operator=(const T& value_)
+    {
+        Process([&](T& item)
+        {
+            item = value_;
+        });
+
+        return *this;
+    }
 
     CVector& operator+=(const CVector& vector_)
     {
@@ -51,6 +60,12 @@ public:
 
         return *this;
     }
+    CVector operator+(const CVector& vector_) const
+    {
+        CVector result = *this;
+        result += vector_;
+        return result;
+    }
     CVector& operator-=(const CVector& vector_)
     {
         Process(vector_._vector, [](T& item1, const T& item2)
@@ -60,16 +75,26 @@ public:
 
         return *this;
     }
+    CVector operator-(const CVector& vector_) const
+    {
+        CVector result = *this;
+        result -= vector_;
+        return result;
+    }
     CVector& operator*=(const T& value_)
     {
-        for (size_t i = 0;
-             i < size;
-             ++i)
+        Process([&](T& item)
         {
-            _vector[i] *= value_;
-        }
+            item *= value_;
+        });
 
         return *this;
+    }
+    CVector operator*(const T& value_) const
+    {
+        CVector result = *this;
+        result *= value_;
+        return result;
     }
 
     T& operator[](size_t index_)
@@ -83,6 +108,9 @@ public:
 
     template<typename T, size_t size>
     friend T operator*(const CVector<T, size>& vector1_, const CVector<T, size>& vector2_);
+
+    template<typename T, size_t size>
+    friend std::ostream& operator<<(std::ostream& os_, const CVector<T, size>& vector_);
 
 private:
     void Process(const T* vector_, std::function<void(T&, const T&)> lambda_)
@@ -103,6 +131,24 @@ private:
             lambda_(_vector[index], vector_[index]);
         }
     }
+    void Process(std::function<void(T&)> lambda_)
+    {
+        for (size_t index = 0;
+             index < size;
+             ++index)
+        {
+            lambda_(_vector[index]);
+        }
+    }
+    void Process(std::function<void(const T&)> lambda_) const
+    {
+        for (size_t index = 0;
+             index < size;
+             ++index)
+        {
+            lambda_(_vector[index]);
+        }
+    }
     void Copy(const T* vector_)
     {
         Process(vector_, [](T& item1, const T& item2)
@@ -120,7 +166,7 @@ template<typename T, size_t size>
 T operator*(const CVector<T, size>& vector1_, const CVector<T, size>& vector2_)
 {
     T result = T();
-        
+
     vector1_.Process(vector2_._vector, [&](const T& item1, const T& item2)
     {
         result += item1 * item2;
@@ -132,20 +178,10 @@ T operator*(const CVector<T, size>& vector1_, const CVector<T, size>& vector2_)
 template<typename T, size_t size>
 std::ostream& operator<<(std::ostream& os_, const CVector<T, size>& vector_)
 {
-    for (size_t index = 0;
-         index < size;
-         ++index)
+    vector_.Process([&](const T& item)
     {
-        os_ << vector_[index] << ", ";
-    }
+        os_ << item << ", ";
+    });
 
     return os_;
-}
-
-template<typename T, size_t size>
-CVector<T, size> operator*(const CVector<T, size>& vector_, const T& value_)
-{
-    CVector<T, size> result = vector_;
-    result *= value_;
-    return result;
 }

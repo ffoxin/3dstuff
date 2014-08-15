@@ -65,6 +65,12 @@ public:
 
         return *this;
     }
+    CMatrix operator+(const CMatrix& matrix_)
+    {
+        CMatrix result(*this);
+        result += matrix_;
+        return result;
+    }
     CMatrix& operator-=(const CMatrix& matrix_)
     {
         for (size_t row = 0; row < rows; ++row)
@@ -73,6 +79,17 @@ public:
         }
 
         return *this;
+    }
+    CMatrix operator-(const CMatrix& matrix_)
+    {
+        CMatrix result(*this);
+        result -= matrix_;
+        return result;
+    }
+
+    CMatrix& operator+=(const T& value_)
+    {
+
     }
     CMatrix& operator*=(const T& value_)
     {
